@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Optimization code for the paper:
+S. Lorenzini, D. Petturiti, B. Vantaggi.
+Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty 
+and α-maxmin preferences. 2005 
+"""
+
+import numpy as np
+import pandas as pd
+
+c_min = np.array([
+    [2, 2, 1],
+    [1, 2, 2],
+    ])
+
+c_max = np.array([
+    [3, 2, 2],
+    [2, 2, 3]
+    ])
+
+# Values of alpha to test
+step = 0.1
+alphas = np.arange(0, 1 + step, step)
+
+ks = []
+
+# Sinkhorn iterations for every alpha
+for alpha in alphas:
+    print()
+    print('*** COMPUTING alpha:', np.round(alpha, 1), '***')
+    c = alpha * c_min + (1 - alpha) * c_max
+    
+    print('c:', c)
+    
+    # X-marginal Mobius inverse
+    w1 = np.array([6, 4])
+    mu = w1 / w1.sum()
+    mu = mu.reshape((len(mu), 1))
+    
+    # Y-marginal Mobius inverse
+    w2 = np.array([1, 1, 1])
+    nu = w2 / w2.sum()
+    nu = nu.reshape((len(nu), 1))
+    
+    (m, n) = c.shape
+    
+    epsilon = 0.01
+    K = np.exp(- c / epsilon)
+    
+    g = np.zeros((3, 1))
+    f = np.zeros((2, 1))
+
+    m_gamma = np.ones_like(K)
+    
+    for i in range(1000):
+        m_gamma_old = m_gamma
+        u = np.exp(f / epsilon)
+        v = np.exp(g / epsilon)
+        m_gamma = np.diag(u.squeeze()) @ K @ np.diag(v.squeeze())
+        f = epsilon * np.log(mu) - epsilon * np.log(K @ np.exp(g / epsilon))
+        g = epsilon * np.log(nu) - epsilon * np.log(K.T @ np.exp(f / epsilon))
+        if (np.sum(np.abs(m_gamma - m_gamma_old)) < 10**(-8)):
+            break
+
+    # Gradient vector
+    grad = nu**2 + (np.array([2, 4, 6]).reshape((len(nu), 1))) * nu + np.array([nu[1] + 2 * nu[2], nu[0] + nu[2], 2 * nu[0] + nu[1]]).reshape((len(nu), 1))
+    
+    # Print results
+    print('\n\nRESULT:')
+    m_mu = np.sum(m_gamma, axis=1)
+    m_nu = np.sum(m_gamma, axis=0)
+    print('m_gamma:\n', np.round(m_gamma, 4), 'with sum =', round(sum(sum(m_gamma)), 4), '\n')
+    print('m_mu:', np.round(m_mu, 4), 'with sum = ', round(np.sum(m_gamma), 4))
+    print('m_nu:', np.round(m_nu, 4), 'with sum = ', round(np.sum(m_gamma), 4))
+    print()
+    print('c:', np.round(c, 4))
+    print('f:', np.round(f, 4).squeeze())
+    print('g:', np.round(g, 4).squeeze())
+    print('- g - grad:', np.round(- g - grad,4).squeeze())
+    print()
+    numeraire = - (- g - grad).min() + 1
+    k = - g - grad + numeraire
+    print('k:', np.round(k, 6).squeeze())
+    print()
+    print('k:', np.round(k, 4).squeeze())
+    
+    print()
+    print((c[0,:] - g.squeeze()).min())
+    print((c[1,:] - g.squeeze()).min())
+    
+    gc = np.array([(c[0,:] - g.squeeze()).min(),
+                   (c[1,:] - g.squeeze()).min()
+                   ]).reshape((2,1))
+    
+    print('gc:', gc)
+    
+    print('gc * mu', gc.T @ mu)
+    print('g * nu', g.T @ nu)
+    print('gc * mu + g * nu:', (gc.T @ mu).squeeze() + (g.T @ nu).squeeze())
+    
+    print('TRUE optimum:', (c * m_gamma).sum())
+    print('f * mu + g * nu:', (f.T @ mu).squeeze() + (g.T @ nu).squeeze())
+  
+    ks.append(k.squeeze())
+
+
+print()
+print('OPTIMAL PRICE FUNCTIONS:')
+i = 0
+for k in ks:
+    print('alpha = ', np.round(alphas[i], 1), 'k:',  k)
+    i += 1
+
+# Save the optimal price function in a CSV
+df_ks = pd.DataFrame(ks)
+df_ks.to_csv('optimal_price_functions.csv', index=False)
