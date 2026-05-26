@@ -2,7 +2,7 @@
 
 Optimization code for the paper:
     
-S. Lorenzini, D. Petturiti, B. Vantaggi. _Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty and α-maxmin preferences._ 2026 
+S. Lorenzini, D. Petturiti, B. Vantaggi. _Stackelberg-Cournot-Nash equilibria under ambiguity and α-maxmin preferences._ 2026 
 
 # Requirements
 The code has been tested on Python 3.10 with the following libraries:
