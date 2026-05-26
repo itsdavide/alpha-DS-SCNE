@@ -2,7 +2,7 @@
 
 Optimization code for the paper:
     
-S. Lorenzini, D. Petturiti, B. Vantaggi. _Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty and α-maxmin preferences._ 2005 
+S. Lorenzini, D. Petturiti, B. Vantaggi. _Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty and α-maxmin preferences._ 2026 
 
 # Requirements
 The code has been tested on Python 3.10 with the following libraries:
@@ -20,3 +20,5 @@ The **bonmin** solver should be located in a folder and the path to that folder 
 * **Example_1_2_prox_k.py**
 * **Example_3_prox_E.py**
 * **Example_3_prox_k.py**
+* **Example_4_prox_E.py**
+* **Example_4_prox_k.py**
