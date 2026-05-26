@@ -3,17 +3,16 @@
 """
 Optimization code for the paper:
 S. Lorenzini, D. Petturiti, B. Vantaggi.
-Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty 
-and α-maxmin preferences. 2005 
+Stackelberg-Cournot-Nash equilibria under ambiguity and α-maxmin preferences. 2026
 """
 
 import pyomo.environ as pyo
 from pyomo.environ import log
 import numpy as np
 
-optimizer_path = 'PATH'
+optimizer_path = '/Users/davidepetturiti/bonmin'
 
-tolerance = 0.00001
+tolerance =  0.00001
 
 def prox_E(q, I, epsilon): 
     tot = sum(q)
@@ -28,9 +27,9 @@ def prox_E(q, I, epsilon):
     model.q = pyo.Param(model.I, initialize=q)
     
     # Define the variables in pyomo
-    model.p = pyo.Var(model.I, within=pyo.NonNegativeReals, bounds=(tolerance, np.Infinity), initialize=tolerance)
-    model.KL = pyo.Var(bounds=(-np.Infinity, np.Infinity))
-    model.E = pyo.Var(bounds=(-np.Infinity, np.Infinity))
+    model.p = pyo.Var(model.I, within=pyo.NonNegativeReals, bounds=(tolerance, np.inf), initialize=tolerance)
+    model.KL = pyo.Var(bounds=(-np.inf, np.inf))
+    model.E = pyo.Var(bounds=(-np.inf, np.inf))
     
     # Set the constraints
     model.c1 = pyo.Constraint(expr=sum(model.p[i] * log(model.p[i] / model.q[i]) - model.p[i] + model.q[i] for i in model.I) == model.KL)

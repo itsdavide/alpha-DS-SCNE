@@ -3,8 +3,7 @@
 """
 Optimization code for the paper:
 S. Lorenzini, D. Petturiti, B. Vantaggi.
-Stackelberg-Cournot-Nash equilibria with Dempster-Shafer uncertainty 
-and α-maxmin preferences. 2005 
+Stackelberg-Cournot-Nash equilibria under ambiguity and α-maxmin preferences. 2026
 """
 
 import numpy as np
@@ -26,7 +25,7 @@ c_max = np.array([
 
 # X-marginal Mobius inverse
 w1 = np.array([6, 4])
-m_mu = w1 / w1.sum()
+m_mu_orig = w1 / w1.sum() 
 
 # Index set for the Y-marginal variables
 I = [0, 1, 2]
@@ -34,7 +33,7 @@ I = [0, 1, 2]
 # Price functions to test
 ks = np.array([
     [3, 2, 1],
-    [1, 2, 3]])
+    ])
 
 # Entropic regularization parameter
 epsilon = 0.01
@@ -44,7 +43,7 @@ def prox_D1(m_eta):
     (m, n) = m_eta.shape
     for i in range(m):
         for j in range(n):
-            m_gamma[i, j] = m_mu[i] * m_eta[i, j] / sum(m_eta[i, :])
+            m_gamma[i, j] = m_mu_orig[i] * m_eta[i, j] / sum(m_eta[i, :])
     return m_gamma
 
 def prox_D2(m_eta):
@@ -109,26 +108,27 @@ for k in ks:
             m_gamma_3 = prox_D3(m_gamma_2 * z3)
             z3 = z3 * (m_gamma_2 / m_gamma_3)
             m_gamma = m_gamma_3
-            if (np.sum(np.abs(m_gamma_3 - m_gamma_0)) < 10**(-8)):
+            m_mu_3 = np.sum(m_gamma, axis=1)
+            if (np.sum(np.abs(m_mu_3 - m_mu_orig)) < 10**(-8)):
                 break
                 
             
-        m_mu = np.sum(m_gamma, axis=1)
-        m_nu = np.sum(m_gamma, axis=0)
-        ent = -entropy(m_nu)
+        m_mu_rec = np.sum(m_gamma, axis=1)
+        m_nu_rec = np.sum(m_gamma, axis=0)
+        ent = -entropy(m_nu_rec)
         print('m_gamma:\n', np.round(m_gamma, 4), 'with sum =', round(sum(sum(m_gamma)), 4), '\n')
-        print('m_mu:', np.round(m_mu, 4), 'with sum = ', round(np.sum(m_gamma), 4))
-        print('m_nu:', np.round(m_nu, 4), 'with sum = ', round(np.sum(m_gamma), 4))
+        print('m_mu_rec:', np.round(m_mu_rec, 4), 'with sum = ', round(np.sum(m_gamma), 4))
+        print('m_nu_rec:', np.round(m_nu_rec, 4), 'with sum = ', round(np.sum(m_gamma), 4))
         print('(Negative) Entropy nu:', ent)
         
-        dists.append(m_nu)
+        dists.append(m_nu_rec)
         ents.append(ent)
         
     df_dists = pd.DataFrame(dists)
-    df_dists.to_csv('dists_' + str(i + 1) + '.csv')
+    df_dists.to_csv('dists_' + str(i) + '.csv')
     
     df_ents = pd.DataFrame(ents)
-    df_ents.to_csv('ents_' + str(i + 1) + '.csv')
+    df_ents.to_csv('ents_' + str(i) + '.csv')
     
     plt.figure(figsize=(6, 4))
     
@@ -137,4 +137,4 @@ for k in ks:
     
     plt.xlabel(r'$\alpha$')
     plt.ylabel(r'$H(\nu^k)$')
-    plt.savefig('entropy_' + str(i + 1) +'.png', dpi=300)
+    plt.savefig('entropy_' + str(i) +'.png', dpi=300)
